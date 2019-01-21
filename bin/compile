@@ -1,13 +1,52 @@
 #!/bin/sh
+set -e
 
-echo "-----> Installing pngquant"
+indent() {
+  sed -u 's/^/       /'
+}
 
-build_dir=$1
-working_dir=`pwd`
+arrow() {
+  sed -u 's/^/-----> /'
+}
 
-chmod -R +x $working_dir/vendor/bin/
-mkdir -p $build_dir/pngquant
-cp -R $working_dir/vendor/* $build_dir/pngquant/
+echo "Install pngquant" | arrow
 
-mkdir -p $build_dir/.profile.d
-echo 'export PATH=$PATH:$HOME/pngquant/bin' > $build_dir/.profile.d/pngquant.sh
+BUILD_DIR=$1
+CACHE_DIR=$2
+VENDOR_DIR="vendor"
+PNGQUANT_VERSION="${PNGQUANT_VERSION:-2.12.2}"
+PNGQUANT_REPO_URL="https://github.com/kornelski/pngquant"
+PNGQUANT_DOWNLOAD_URL="https://github.com/kornelski/pngquant/archive/${PNGQUANT_VERSION}.tar.gz"
+PNGQUANT_CACHE_FILE="$CACHE_DIR/pngquant-$PNGQUANT_VERSION.tar.gz"
+PNGQUANT_CACHE_DIR="$CACHE_DIR/pngquant-cache"
+
+if [ -x "$PNGQUANT_CACHE_DIR/pngquant" ]; then
+  echo "Using cached pngquant binary" | arrow
+  mkdir -p $BUILD_DIR/$VENDOR_DIR/pngquant/bin
+  cp $PNGQUANT_CACHE_DIR/pngquant $BUILD_DIR/$VENDOR_DIR/pngquant/bin
+else
+  echo "Building pngquant from source" | arrow
+  echo "PNGQUANT_DOWNLOAD_URL = " $PNGQUANT_DOWNLOAD_URL | indent
+
+  cd $BUILD_DIR
+  git clone $PNGQUANT_REPO_URL -b $PNGQUANT_VERSION pngquant-$PNGQUANT_VERSION | indent
+  cd pngquant-$PNGQUANT_VERSION
+  ./configure -prefix=. | indent
+  make | indent
+  chmod +x pngquant
+
+  mkdir -p $BUILD_DIR/$VENDOR_DIR/pngquant/bin
+  cp pngquant $BUILD_DIR/$VENDOR_DIR/pngquant/bin/pngquant
+
+  # Store binary in cache to speedup future builds
+  mkdir -p $PNGQUANT_CACHE_DIR
+  cp pngquant $PNGQUANT_CACHE_DIR
+fi
+
+echo "Testing pngquant binary" | arrow
+$BUILD_DIR/$VENDOR_DIR/pngquant/bin/pngquant -h | indent
+
+echo "Modifying PATH" | arrow
+PROFILE_PATH="$BUILD_DIR/.profile.d/pngquant.sh"
+mkdir -p $(dirname $PROFILE_PATH)
+echo 'export PATH="/app/vendor/pngquant/bin:$PATH"' >> $PROFILE_PATH

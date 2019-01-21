@@ -1,4 +1,4 @@
 #!/bin/sh
 
-echo "pngquant"
+echo `pngquant -V`
 exit 0

@@ -3,5 +3,5 @@
 cat <<EOF
 ---
 config_vars:
-PATH: $PATH:/app/pngquant/bin
+PATH: /app/pngquant/bin:$PATH
 EOF
