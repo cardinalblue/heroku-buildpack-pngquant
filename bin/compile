@@ -16,8 +16,6 @@ CACHE_DIR=$2
 VENDOR_DIR="vendor"
 PNGQUANT_VERSION="${PNGQUANT_VERSION:-2.12.2}"
 PNGQUANT_REPO_URL="https://github.com/kornelski/pngquant"
-PNGQUANT_DOWNLOAD_URL="https://github.com/kornelski/pngquant/archive/${PNGQUANT_VERSION}.tar.gz"
-PNGQUANT_CACHE_FILE="$CACHE_DIR/pngquant-$PNGQUANT_VERSION.tar.gz"
 PNGQUANT_CACHE_DIR="$CACHE_DIR/pngquant-cache"
 
 if [ -x "$PNGQUANT_CACHE_DIR/pngquant" ]; then
@@ -26,7 +24,7 @@ if [ -x "$PNGQUANT_CACHE_DIR/pngquant" ]; then
   cp $PNGQUANT_CACHE_DIR/pngquant $BUILD_DIR/$VENDOR_DIR/pngquant/bin
 else
   echo "Building pngquant from source" | arrow
-  echo "PNGQUANT_DOWNLOAD_URL = " $PNGQUANT_DOWNLOAD_URL | indent
+  echo "PNGQUANT_REPO_URL = " $PNGQUANT_REPO_URL | indent
 
   cd $BUILD_DIR
   git clone $PNGQUANT_REPO_URL -b $PNGQUANT_VERSION pngquant-$PNGQUANT_VERSION | indent
